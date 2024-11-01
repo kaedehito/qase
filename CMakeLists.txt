@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.5)
+
+project(qase C)
+
+find_package(SDL2 REQUIRED)
+find_package(SDL2_mixer REQUIRED)
+
+add_executable(qase main.c)
+
+target_link_libraries(qase SDL2::SDL2 SDL2_mixer::SDL2_mixer)
+
