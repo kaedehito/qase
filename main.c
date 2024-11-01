@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 ogasawara futo <pik6cs@gmail.com>
+ * Copyright (c) 2024 futo ogasawara <pik6cs@gmail.com>
  *
  * This software is licensed under the MIT License.
  * 
