@@ -1,1 +1,0 @@
-/usr/bin/cc  -O3 CMakeFiles/qase.dir/main.c.o -o qase  /usr/lib/x86_64-linux-gnu/libSDL2.so /usr/lib/x86_64-linux-gnu/libSDL2_mixer.so 
