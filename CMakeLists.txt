@@ -5,7 +5,9 @@ project(qase C)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_mixer REQUIRED)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wall -Werror -Wextra -g -fsanitize=address")
+
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3")
 
 add_executable(qase main.c)
 
