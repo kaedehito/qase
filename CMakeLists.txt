@@ -5,6 +5,8 @@ project(qase C)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_mixer REQUIRED)
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
+
 add_executable(qase main.c)
 
 target_link_libraries(qase SDL2::SDL2 SDL2_mixer::SDL2_mixer)
