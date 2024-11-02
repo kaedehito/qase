@@ -20,5 +20,5 @@ cmake --build .
 ```
 
 # Screenshots
-![image](https://github.com/user-attachments/assets/a894c8b5-fb27-4f1a-aac2-2600bbecc5e6)
+![image](https://github.com/user-attachments/assets/85273028-7637-42a6-bbbe-756310a4b054)
 
