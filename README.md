@@ -22,3 +22,8 @@ cmake --build .
 # Screenshots
 ![image](https://github.com/user-attachments/assets/85273028-7637-42a6-bbbe-756310a4b054)
 
+
+# License
+This software is licensed under MIT License.
+
+Please read LICENSE file
