@@ -1,5 +1,5 @@
 # qase
-Extremely simple music playback program
+Lightweight command line music playback program
 
 ## dependencies
 ffmpeg(ffprobe)
