@@ -22,18 +22,84 @@
  * THE SOFTWARE.
  */
 
-
 #include <stdio.h>
 #include <unistd.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_image.h>
 #include <stdlib.h>
 #include <termios.h>
 #include <pthread.h>
 #include <string.h>
+#include <id3tag.h>
+#include <argp.h>
+#include "image.c"
+#include "musicname.c"
 
-volatile int stop = 0;   // 0: 再生中, 1: 一時停止, 2: 終了
+volatile int stop = 0;
 volatile int loop = 0;
+int disable_cover = 0;
+char *music_file = NULL;
+
+void ver() {
+    printf("qase 2.0\n");
+    printf("Copyright (c) 2024 futo ogasawara <pik6cs@gmail.com>\n");
+    printf("This software is licensed under the MIT License\n");
+}
+
+
+struct arguments {
+    char *args[1];
+    int loop;
+    int disable_cover;
+    int version;
+};
+
+static struct argp_option options[] = {
+    {"loop", 'l', 0, 0, "Loop the music", 0},
+    {"no-cover", 'c', 0, 0, "Disable cover image", 0},
+    {"version", 'v', 0, 0, "Display qase version", 0},
+    {0, 0, 0, 0, NULL, 0} 
+};
+
+
+static error_t parse_opt(int key, char *arg, struct argp_state *state) {
+    struct arguments *arguments = state->input;
+
+    switch (key) {
+        case 'l':
+            arguments->loop = 1;
+            break;
+        case 'c':
+            arguments->disable_cover = 1;
+            break;
+	case 'v':
+	    ver();
+	    exit(0);
+	    break;
+        case ARGP_KEY_ARG:
+            if (state->arg_num >= 1) {
+                argp_usage(state);
+            }
+            arguments->args[state->arg_num] = arg;
+            // -c フラグがある場合は getCoverImage を実行しない
+            if (arguments->disable_cover == 0) {
+                getCoverImage(arg);
+            }
+            break;
+        case ARGP_KEY_END:
+            if (state->arg_num < 1) {
+                argp_usage(state);
+            }
+            break;
+        default:
+            return ARGP_ERR_UNKNOWN;
+    }
+    return 0;
+}
+
+static struct argp argp = {options, parse_opt, "FILE", "Extremely simple music playback program", 0, NULL, 0};
+
 
 void enableRawMode() {
     struct termios raw;
@@ -53,17 +119,16 @@ void *clearLine(void *arg) {
     int *remaining_time = (int *)arg;
 
     while (*remaining_time > 0) {
-        if (stop == 1) { // 一時停止中
+        if (stop == 1) {
             printf("\033[F\033[K⏸ Paused\n");
             while (stop == 1) {
-                sleep(1); // 一時停止中は待機
+                sleep(1);
             }
-        } else if (stop == 2) { // 終了要求
+        } else if (stop == 2) {
             printf("\033[F\033[K ⏹ Quit\n");
             break;
         }
 
-        // 残り時間の表示
         int minutes = *remaining_time / 60;
         int seconds = *remaining_time % 60;
         if (minutes == 0) {
@@ -76,37 +141,32 @@ void *clearLine(void *arg) {
         sleep(1);
         (*remaining_time)--;
 
-        // ループ処理の設定
         if (loop && *remaining_time == 0) {
-            *remaining_time = *(int *)arg; // ループ時に残り時間をリセット
+            *remaining_time = *(int *)arg;
         }
     }
 
     return NULL;
 }
 
-void help(char* arg) {
-    printf("qase 1.0\n");
-    printf("Usage: %s [option] <file>\n", arg);
-    printf("\nOption: \n");
-    printf("\t-l: Loop the music\n");
-    printf("\n");
-    printf("Copyright (c) 2024 futo ogasawara <pik6cs@gmail.com>\n");
-    printf("This software is licensed under the MIT License\n");
-}
+
 
 int main(int argc, char *argv[]) {
-    if (argc >= 2) {
-        if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
-            help(argv[0]);
-            return 0;
-        }
+    struct arguments arguments;
+    arguments.loop = 0;
+    arguments.disable_cover = 0;
 
+    argp_parse(&argp, argc, argv, 0, 0, &arguments);
+    
+    music_file = arguments.args[0]; 
+    loop = arguments.loop;
+    disable_cover = arguments.disable_cover;
+
+   if (music_file) {
         enableRawMode();
 
-        // 音楽の長さを取得
         char text[200];
-        snprintf(text, sizeof(text), "ffprobe -i \"%s\" -show_entries format=duration -v quiet -of csv=\"p=0\"", (strcmp(argv[1], "-l") == 0 ? argv[2] : argv[1]));
+        snprintf(text, sizeof(text), "ffprobe -i \"%s\" -show_entries format=duration -v quiet -of csv=\"p=0\"", music_file);
         FILE* fp = popen(text, "r");
 
         if (fp == NULL) {
@@ -127,10 +187,20 @@ int main(int argc, char *argv[]) {
         int *remaining_time = malloc(sizeof(int));
         *remaining_time = total_time;
 
-        // SDL2の初期化
         if (SDL_Init(SDL_INIT_AUDIO) < 0) {
             printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
             disableRawMode();
+            return 1;
+        }
+        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+            printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+            disableRawMode();
+            return 1;
+        }
+        int img_flags = IMG_INIT_JPG | IMG_INIT_PNG;
+        if ((IMG_Init(img_flags) & img_flags) != img_flags) {
+            fprintf(stderr, "IMG_Init Error: %s\n", IMG_GetError());
+            SDL_Quit();
             return 1;
         }
         if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
@@ -139,59 +209,56 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
-        Mix_Music *music = NULL;
-        if (strcmp(argv[1], "-l") == 0) {
-            music = Mix_LoadMUS(argv[2]);
-            loop = 1;
-        } else {
-            music = Mix_LoadMUS(argv[1]);
-        }
+        Mix_Music *music = Mix_LoadMUS(music_file);
         if (!music) {
             printf("Failed to load music! Mix_Error: %s\n", Mix_GetError());
             disableRawMode();
             return 1;
         }
 
-        // 音楽を再生
         Mix_PlayMusic(music, loop ? -1 : 1);
 
+        printf("'q' to quit, 's' to stop music, 'p' to resume music\n");
+        char* name = getName(loop ? music_file : music_file);
+        if (name == NULL) {
+            printf("Playing %s\n\n", music_file);
+        } else {
+            printf("Playing %s\n\n", name);
+        }
+
+        free(name);
         pthread_t thread;
         pthread_create(&thread, NULL, clearLine, remaining_time);
-
-        printf("'q' to quit, 's' to stop music, 'p' to resume music\n");
-        printf("Playing %s\n\n", loop ? argv[2] : argv[1]);
 
         char input;
         while (1) {
             input = getchar();
             if (input == 'q') {
-                stop = 2; // 終了フラグを立てる
+                stop = 2;
                 break;
             }
             if (input == 's') {
-                stop = 1; // 一時停止フラグを立てる
+                stop = 1;
                 Mix_PauseMusic();
             }
             if (input == 'p' && stop == 1) {
-                stop = 0; // 再開フラグを立てる
+                stop = 0;
                 Mix_ResumeMusic();
             }
-            SDL_Delay(100); // 過度のCPU使用を防ぐ
+            SDL_Delay(100);
         }
 
-        stop = 2; // 終了フラグを立てる
-        pthread_join(thread, NULL); // スレッドの終了を待つ
-        free(remaining_time); // メモリの解放
+        stop = 2;
+        pthread_join(thread, NULL);
+        free(remaining_time);
         Mix_FreeMusic(music);
         Mix_CloseAudio();
         SDL_Quit();
         disableRawMode();
-        return 0;
     } else {
         printf("Usage: %s <file>\n", argv[0]);
         printf("If you want more information, try the --help option\n");
     }
     return 1;
 }
-
 
