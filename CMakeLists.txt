@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.5)
-
 project(qase C)
 
-find_package(SDL2 REQUIRED)
-find_package(SDL2_mixer REQUIRED)
-find_package(SDL2_image REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SDL2_mixer REQUIRED sdl2_mixer)
+pkg_check_modules(SDL2 REQUIRED sdl2)
+pkg_check_modules(SDL2_image REQUIRED sdl2)
 find_library(ID3TAG_LIB id3tag REQUIRED)
 
 
