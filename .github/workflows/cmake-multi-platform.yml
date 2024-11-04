@@ -30,18 +30,24 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
-        
-      - name: Install dependencies
+
+      - name: Install dependencies on Ubuntu
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt update
-          sudo apt install libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libid3tag0-dev
+          sudo apt install -y libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libid3tag0-dev
 
+      - name: Install dependencies on Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install sdl2 sdl2_mixer sdl2_image
 
       - name: Configure CMake
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
       - name: Build
         run: |
           cd build
