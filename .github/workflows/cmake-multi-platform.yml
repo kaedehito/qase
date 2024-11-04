@@ -47,6 +47,9 @@ jobs:
       - name: Install SDL2
         run: ./vcpkg/vcpkg install sdl2
 
+      - name: Install SDL2-Mixer
+        run: ./vcpkg/vcpkg install sdl2-mixer
+
       - name: Configure CMake
         run: |
           mkdir build
