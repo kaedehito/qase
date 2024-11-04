@@ -35,18 +35,19 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt update
-          sudo apt install -y libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libid3tag0-dev
+          sudo apt install -y libsdl2-dev libsdl2-mixer-dev libsdl2-image-dev libid3tag0-dev pkg-config
 
       - name: Install dependencies on Windows
         if: matrix.os == 'windows-latest'
         run: |
-          choco install sdl2 sdl2_mixer sdl2_image
-
+          choco install -y sdl2 sdl2_mixer sdl2_image
+          # Chocolateyでlibid3tagが利用できない場合、手動でセットアップが必要です
+          
       - name: Configure CMake
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
 
       - name: Build
         run: |
@@ -56,3 +57,4 @@ jobs:
       - name: Test
         working-directory: build
         run: ctest --build-config ${{ matrix.build_type }}
+
