@@ -50,6 +50,9 @@ jobs:
       - name: Install SDL2-Mixer
         run: ./vcpkg/vcpkg install sdl2-mixer
 
+      - name: Install SDL2-Image
+        run: ./vcpkg/vcpkg install sdl2-image
+
       - name: Configure CMake
         run: |
           mkdir build
