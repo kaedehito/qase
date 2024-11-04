@@ -26,43 +26,29 @@ jobs:
           - os: ubuntu-latest
             c_compiler: clang
             cpp_compiler: clang++
-        exclude:
-          - os: windows-latest
-            c_compiler: gcc
-          - os: windows-latest
-            c_compiler: clang
-          - os: ubuntu-latest
-            c_compiler: cl
 
     steps:
       - name: Check out code
         uses: actions/checkout@v2
-
-      - name: Install vcpkg
-        run: |
-          git clone https://github.com/microsoft/vcpkg.git
-          cd vcpkg
-          ./bootstrap-vcpkg.sh
-
+        
       - name: Install SDL2
-        run: ./vcpkg/vcpkg install sdl2
+        run: sudo apt install libsdl2-dev
 
       - name: Install SDL2-Mixer
-        run: ./vcpkg/vcpkg install sdl2-mixer
+        run: sudo apt install libsdl2-mixer-dev
 
       - name: Install SDL2-Image
-        run: ./vcpkg/vcpkg install sdl2-image
+        run: sudo apt install libsdl2-image-dev
 
       - name: Configure CMake
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake
-
+          cmake .. -DCMAKE_BUILD_TYPE=Release
       - name: Build
         run: |
           cd build
-          cmake --build . --config ${{ matrix.build_type }}
+          cmake --build .
 
       - name: Test
         working-directory: build
