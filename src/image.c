@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ogasawara futo <pik6cs@gmail.com>
+ * This software is licensed under the MIT License.
+ */
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL.h>
 #include <id3tag.h>
@@ -6,13 +10,11 @@
 #include <string.h>
 #include <pthread.h>
 
-// スレッドに渡すデータ構造
 typedef struct {
     void* image_data;
     size_t image_size;
 } ThreadData;
 
-// スレッド関数
 static void* displayCoverImageThread(void* arg) {
     ThreadData* data = (ThreadData*)arg;
 
@@ -138,7 +140,6 @@ static void* displayCoverImageThread(void* arg) {
 }
 
 void displayCoverImage(void* image_data, size_t image_size) {
-    // スレッドデータの準備
     ThreadData* data = malloc(sizeof(ThreadData));
     if (!data) {
         fprintf(stderr, "Failed to allocate thread data\n");
@@ -147,7 +148,6 @@ void displayCoverImage(void* image_data, size_t image_size) {
     data->image_data = image_data;
     data->image_size = image_size;
 
-    // スレッドの作成
     pthread_t thread_id;
     int result = pthread_create(&thread_id, NULL, displayCoverImageThread, data);
     if (result != 0) {
@@ -156,7 +156,6 @@ void displayCoverImage(void* image_data, size_t image_size) {
         return;
     }
 
-    // スレッドをデタッチ
     pthread_detach(thread_id);
 }
 
@@ -186,11 +185,9 @@ void getCoverImage(const char *filename) {
         
         if (image_data && image_size > 0) {
             
-            // 画像データのコピーを作成
             void *image_copy = malloc(image_size);
             if (image_copy) {
                 memcpy(image_copy, image_data, image_size);
-                // コピーしたデータを渡す
                 displayCoverImage(image_copy, image_size);
             } else {
                 fprintf(stderr, "Failed to allocate memory for image data\n");
