@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include "help.c"
+#include "init.c"
 #include <argp.h>
 
 
@@ -15,7 +17,7 @@ struct arguments {
     bool buffer_help;
     bool loop;
     bool new_buffer;
-    bool playlist;
+//    bool playlist;
     int volume;
     bool version;
 };
@@ -25,7 +27,7 @@ static struct argp_option options[] = {
     {"buffer-help", 'f', 0, 0, "Shows qase help in a separate buffer", 0},
     {"loop", 'l', 0, 0, "Loop the music", 0},
     {"new-buffer", 'n', 0, 0, "Create a new buffer and run the qase", 0},
-    {"playlist", 'p', 0, 0, "Reads a qase playlist (qpl) file and plays the playlist", 0},
+//    {"playlist", 'p', 0, 0, "Reads a qase playlist (qpl) file and plays the playlist", 0},
     {"volume", 'v', "VOLUME", 0, "Change master volume", 0},
     {"version", 'V', 0, 0, "Display qase version", 0},
     { 0 }
@@ -37,7 +39,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 
     switch (key) {
         case 'f':
-            arguments->buffer_help = true;
+            enableRawMode();
+            help_display();
+            disableRawMode();
+            exit(0);
             break;
         case 'l':
             arguments->loop = true;
@@ -45,8 +50,8 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         case 'n':
             arguments->new_buffer = true;
             break;
-        case 'p':
-            arguments->playlist = true;
+//        case 'p':
+//            arguments->playlist = true;
             break;
         case 'v':
             if (arg) {

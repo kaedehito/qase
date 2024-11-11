@@ -42,20 +42,19 @@
 #include "musicname.c"
 #include "playlist.c"
 
-void qase(char *music_file, char *playlist, bool new_buffer, int volume,
-          bool loop) {
+void qase(char *music_file, bool new_buffer, int volume,
+          bool loop, char *playlist_message, int music_duration) {
 
-  if (playlist == NULL) {
 
     // Play the music
     int play = Play(music_file, false);
-    printf("Welcome to qase! Press 'h' for help.\n\n\n");
 
     if (play == 1) {
       disableRawMode();
       exit(1);
     }
 
+    printf("Welcome to qase! Press 'h' for help.\n\n\n");
     if (new_buffer) {
       printf("\x1b[?1049h");
       printf("\x1b[H");
@@ -65,18 +64,24 @@ void qase(char *music_file, char *playlist, bool new_buffer, int volume,
     Mix_VolumeMusic(volume);
 
     char *name = getName(loop ? music_file : music_file);
-
+    if(name == NULL){
+        name = music_file;
+    }
+    char mess[100] = "\x1b[31mERROR\x1b[0m";
     // set display message
-    char mess[100];
-    snprintf(mess, sizeof(mess), "Now Playing %s", name);
+    if(playlist_message != NULL){
+        snprintf(mess, sizeof(mess), "\x1b[35mNow Playing %s, %s\x1b[0m", name, playlist_message);
 
+    }else{
+        snprintf(mess, sizeof(mess), "\x1b[35mNow Playing %s\x1b[0m", name);
+    }
     display_message(mess);
-
     free(name);
 
+
+
     // get music length
-    int time_temp = get_audio_duration(music_file);
-    int *time = (int *)&time_temp;
+    int *time = (int *)&music_duration;
 
     pthread_t thread;
     pthread_create(&thread, NULL, display_time, time);
@@ -170,17 +175,12 @@ void qase(char *music_file, char *playlist, bool new_buffer, int volume,
     // quit
     stop = 2;
     pthread_join(thread, NULL);
-
     Mix_FreeMusic(music); // music is defined at init.c
     Mix_CloseAudio();
     SDL_Quit();
-
     disableRawMode();
     printf("\x1b[?1049l");
 
     return;
 
-  } else {
-    // TODO
-  }
 }

@@ -1,4 +1,4 @@
-#include "help.c"
+
 #include "image.c"
 #include "init.c"
 #include "messages.c"

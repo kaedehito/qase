@@ -6,6 +6,9 @@
 #include <termio.h>
 #include <unistd.h>
 
+#ifndef _INIT_C
+#define _INIT_C
+
 // defined at init.c.
 // WARN: global variable
 Mix_Music *music = NULL;
@@ -60,3 +63,4 @@ bool init(){
         }
 	return false;
 }
+#endif

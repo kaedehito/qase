@@ -2,11 +2,24 @@
 Lightweight command line music playback program
 
 ## dependencies
-ffmpeg(ffprobe)
+argp
+
+libid3tag0
+
+ffmpeg(libavformat)
 
 SDL2
+SDL2-image
+SDL2-mixer
+
+pkg-config
 
 cmake
+
+**install dependencies on ubuntu**:
+```bash
+sudo apt install libid3tag0 libid3tag0-dev libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev ffmpeg libavformat-dev libavutil-dev libavcodec-dev pkg-config
+```
 
 ## Usage
 `qase <Music file>`
@@ -16,7 +29,7 @@ cmake
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
-cmake --build .
+make
 ```
 
 # Screenshots

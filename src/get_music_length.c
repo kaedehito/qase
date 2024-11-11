@@ -4,13 +4,13 @@
 #include <stdlib.h>
 
 
-
 int get_audio_duration(const char *filename){
+    av_log_set_level(AV_LOG_ERROR);
     AVFormatContext *fmt_ctx = NULL;
     double duration;
 
     if(avformat_open_input(&fmt_ctx, filename, NULL, NULL) != 0){
-        fprintf(stderr, "Failed to open file");
+        fprintf(stderr, "Failed to open file\n");
         exit(1);
         return -1;
     }
