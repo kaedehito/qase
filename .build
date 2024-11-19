@@ -1,0 +1,8 @@
+{
+  "build":[
+    "mkdir build",
+    "cmake ..",
+    "make"
+  ],
+  "install":[]
+}
