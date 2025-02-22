@@ -2,7 +2,7 @@
 Lightweight command line music playback program
 
 > [!CAUTION]
-> Currently qase does not work due to a mysterious error, so qase is deprecated.
+> Currently qase does not work due to a mysterious error, on wsl. so qase is deprecated.
 
 ## dependencies
 argp
