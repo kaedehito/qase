@@ -1,3 +1,0 @@
-/home/pik6c/develop/qase/old/build/CMakeFiles/qase.dir
-/home/pik6c/develop/qase/old/build/CMakeFiles/edit_cache.dir
-/home/pik6c/develop/qase/old/build/CMakeFiles/rebuild_cache.dir
