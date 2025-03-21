@@ -1,6 +1,6 @@
 # Qase License
 
-**Copyright (c) 2025 小笠原 楓人**
+**Copyright (c) 2025 Ogasawara futo**
 
 1. **Permission**
 You are hereby granted the permission to:
