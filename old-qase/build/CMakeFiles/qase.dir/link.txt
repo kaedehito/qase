@@ -1,0 +1,1 @@
+/usr/bin/cc  -O3 -Wall -Werror -Wextra -g CMakeFiles/qase.dir/src/main.c.o -o qase  /usr/lib/x86_64-linux-gnu/libSDL2_image.so /usr/lib/x86_64-linux-gnu/libSDL2.so -lid3tag /usr/lib/x86_64-linux-gnu/libSDL2_mixer.so /usr/lib/x86_64-linux-gnu/libavformat.so /usr/lib/x86_64-linux-gnu/libavcodec.so /usr/lib/x86_64-linux-gnu/libavutil.so 
