@@ -10,12 +10,13 @@ import (
 	"github.com/faiface/beep/effects"
 	"github.com/faiface/beep/mp3"
 	"github.com/faiface/beep/speaker"
-	"github.com/faiface/beep/wav"	
+	"github.com/faiface/beep/wav"
 )
 
 var (
 	stop         bool
 	loop         bool
+	quit         bool
 	total_time   time.Duration
 	current_time time.Duration
 	mu           sync.Mutex
@@ -48,11 +49,18 @@ func play_music(streamer beep.StreamSeekCloser, format beep.Format) {
 	ctrl := &beep.Ctrl{Streamer: beep.Loop(1, streamer), Paused: false}
 	volume := &effects.Volume{Streamer: ctrl, Base: 2}
 	speaker.Play(volume)
-	total_time = time.Duration(volume.Volume)
+
+	mu.Lock()
+	total_time = time.Duration(streamer.Len()) * time.Second / time.Duration(format.SampleRate)
+	mu.Unlock()
 
 	go start_cli()
 	for {
 		current_time += 1 * time.Millisecond
+
+		if quit {
+			os.Exit(0)
+		}
 
 		if stop {
 			ctrl.Paused = true
@@ -66,7 +74,7 @@ func play_music(streamer beep.StreamSeekCloser, format beep.Format) {
 
 		time.Sleep(1 * time.Millisecond)
 		if current_time == total_time {
-			break
+			os.Exit(0)
 		}
 	}
 }

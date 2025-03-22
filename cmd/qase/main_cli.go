@@ -1,6 +1,10 @@
 package main
 
 import (
+	"fmt"
+	"strings"
+	"time"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -21,10 +25,23 @@ func (m model) Init() tea.Cmd {
 
 // Update implements tea.Model.
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	m.now_time.second += 1
+	if m.now_time.second == 60 {
+		m.now_time.second = 0
+		m.now_time.minute += 1
+	}
+	if m.now_time.minute == 60 {
+		m.now_time.minute = 0
+		m.now_time.hour += 1
+	}
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "q":
+			mu.Lock()
+			quit = true
+			mu.Unlock()
 			return m, tea.Quit
 		case "h":
 			m.help = !m.help
@@ -62,6 +79,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 	}
+
+	time.Sleep(1 * time.Second)
 	return m, nil
 }
 
@@ -71,40 +90,56 @@ func (m model) View() string {
 		help()
 	}
 
-	if m.stop {
-		mu.Lock()
-		stop = true
-		mu.Unlock()
-		return "Music stopped"
+	mu.Lock()
+	stop = m.stop
+	loop = m.loop
+	mu.Unlock()
+
+	var symbol string
+	if stop {
+		symbol = "⏸"
 	} else {
-		stop = false
+		symbol = "▶"
+	}
+	if loop {
+		symbol = "↪ " + symbol
 	}
 
-	if m.loop {
-		mu.Lock()
-		loop = true
-		mu.Unlock()
-		return "Music loop is enabled"
+	mu.Lock()
+	totalSeconds := int(total_time.Seconds())
+	mu.Unlock()
+
+	hours := totalSeconds / 3600
+	minutes := (totalSeconds % 3600) / 60
+	seconds := totalSeconds % 60
+
+	message := fmt.Sprintf("%s %d hour %d minutes %d seconds / %d hour %d minutes %d seconds\n", symbol, m.now_time.hour, m.now_time.minute, m.now_time.second, hours, minutes, seconds)
+
+	if m.errormsg != "" {
+		message = fmt.Sprintf("\x1b[31m%s\x1b[0m %s", m.errormsg, message)
 	}
 
 	if m.message != "" {
-		return m.message
+		message = m.message
 	}
 
-	if m.errormsg != "" {
-		return "\x1b[31m" + m.errormsg + "\x1b[0m"
+	replacements := map[string]string{
+		"{symbol}": symbol,
+		"{minute}": fmt.Sprintf("%d", m.now_time.minute),
+		"{second}": fmt.Sprintf("%d", m.now_time.second),
+	}
+	for key, value := range replacements {
+		message = strings.ReplaceAll(message, key, value)
 	}
 
-	if m.stop {
-		return ""
-	}
-
+	return message
 }
 
 type currentTime struct {
 	hour   int
 	minute int
 	second int
+	total  int
 }
 
 var _ tea.Model = model{
@@ -112,6 +147,7 @@ var _ tea.Model = model{
 		hour:   0,
 		minute: 0,
 		second: 0,
+		total:  0,
 	},
 	message: "",
 	volume:  0,
@@ -126,6 +162,7 @@ func start_cli() {
 			hour:   0,
 			minute: 0,
 			second: 0,
+			total:  0,
 		},
 		message: "",
 		volume:  0,
@@ -134,7 +171,10 @@ func start_cli() {
 		help:    false,
 	}
 
+	mu.Lock()
+	m.now_time.total = int(total_time.Seconds())
+	mu.Unlock()
+
 	p := tea.NewProgram(m)
 	p.Run()
-
 }
