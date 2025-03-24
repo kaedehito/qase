@@ -15,8 +15,5 @@ func is_mp3(uri string) bool {
 	}
 	defer file.Close()
 	_, _, err = mp3.Decode(file)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }

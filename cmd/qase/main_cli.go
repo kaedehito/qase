@@ -11,7 +11,7 @@ import (
 type model struct {
 	now_time currentTime
 	message  string
-	errormsg string
+	message2 string
 	volume   int
 	stop     bool
 	loop     bool
@@ -20,29 +20,28 @@ type model struct {
 
 // Init implements tea.Model.
 func (m model) Init() tea.Cmd {
-	go func() {
-		for {
-			time.Sleep(1 * time.Second)
-			m.now_time.second += 1
-			if m.now_time.second == 60 {
-				m.now_time.minute += 1
-				m.now_time.second = 0
-			}
-			if m.now_time.minute == 60 {
-				m.now_time.hour += 1
-				m.now_time.minute = 0
-			}
-		}
-	}()
-	return nil
+	return tickCmd()
 }
 
+func tickCmd() tea.Cmd {
+	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
+		return tickMsg{}
+	})
+}
+
+type tickMsg struct{}
+
 var count int
+var isError bool
 
 // Update implements tea.Model.
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	m.message2 = fmt.Sprintf("\x1b[35mNow Playing %s\x1b[0m", musicName)
 	if count > 30 {
-		m.errormsg = ""
+		if isError {
+			m.message2 = ""
+			isError = false
+		}
 		count = 0
 	}
 	count += 1
@@ -60,7 +59,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		case "s":
 			if m.stop {
-				m.errormsg = "Music is already stopped!"
+				m.message2 = "\x1b[31mMusic is already stopped!\x1b[0m"
+				isError = true
 				return m, nil
 			}
 			m.stop = !m.stop
@@ -70,7 +70,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.stop = false
 				m.message = "Play"
 			} else {
-				m.errormsg = "Music is already playing!"
+				m.message2 = "\x1b[31mMusic is already playing!\x1b[0m"
+				isError = true
 			}
 		case "l":
 			m.loop = !m.loop
@@ -78,25 +79,40 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "j":
 			m.volume -= 1
 			if m.volume < 0 {
-				m.errormsg = "Volume is already at minimum!"
+				m.message2 = "\x1b[31mVolume is already at minimum!\x1b[0m"
+				isError = true
 				m.volume = 0
 				return m, nil
 			}
+			volume.Volume -= 0.1
 			m.message = fmt.Sprintf("Volume: %d", m.volume)
 			return m, nil
 		case "k":
 			m.volume += 1
 			if m.volume > 100 {
-				m.errormsg = "Volume is already at maximum!"
+				m.message2 = "\x1b[31mVolume is already at maximum!\x1b[0m"
+				isError = true
 				m.volume = 100
 				return m, nil
 			}
+			volume.Volume += 0.1
 			m.message = fmt.Sprintf("Volume: %d", m.volume)
 			return m, nil
 		}
+	case tickMsg:
+		m.now_time.second += 1
+		if m.now_time.second == 60 {
+			m.now_time.minute += 1
+			m.now_time.second = 0
+		}
+		if m.now_time.minute == 60 {
+			m.now_time.hour += 1
+			m.now_time.minute = 0
+		}
+
+		return m, tickCmd()
 	}
 
-	time.Sleep(1 * time.Second)
 	return m, nil
 }
 
@@ -109,7 +125,7 @@ func (m model) View() string {
 
 	mu.Lock()
 	stop = m.stop
-	loop = m.loop
+	loopEnabled = m.loop
 	mu.Unlock()
 
 	var symbol string
@@ -118,7 +134,7 @@ func (m model) View() string {
 	} else {
 		symbol = "▶"
 	}
-	if loop {
+	if loopEnabled {
 		symbol = "↪ " + symbol
 	}
 
@@ -180,8 +196,8 @@ func (m model) View() string {
 		}
 	}
 
-	if m.errormsg != "" {
-		message = fmt.Sprintf("\x1b[31m%s\x1b[0m\n%s", m.errormsg, message)
+	if m.message2 != "" {
+		message = fmt.Sprintf("%s\n%s", m.message2, message)
 	}
 
 	replacements := map[string]string{
@@ -201,23 +217,6 @@ type currentTime struct {
 	minute int
 	second int
 	total  int
-}
-
-func (current currentTime) update_time(s chan currentTime) currentTime {
-	for {
-		time.Sleep(1 * time.Second)
-		current.second += 1
-		if current.second == 60 {
-			current.minute += 1
-			current.second = 0
-		}
-		if current.minute == 60 {
-			current.minute = 0
-			current.hour += 1
-		}
-
-	}
-
 }
 
 var _ tea.Model = model{
@@ -243,7 +242,7 @@ func start_cli() {
 			total:  0,
 		},
 		message: "",
-		volume:  0,
+		volume:  50,
 		stop:    false,
 		loop:    false,
 		help:    false,

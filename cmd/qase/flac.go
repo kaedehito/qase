@@ -4,16 +4,16 @@ import (
 	"log"
 	"os"
 
-	"github.com/faiface/beep/wav"
+	"github.com/faiface/beep/flac"
 )
 
-func is_wav(uri string) bool {
-	file, err := os.Open(uri)
+func is_flac(path string) bool {
+	file, err := os.Open(path)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	}
 	defer file.Close()
-	_, _, err = wav.Decode(file)
+	_, _, err = flac.Decode(file)
 	return err == nil
 }
