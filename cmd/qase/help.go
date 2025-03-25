@@ -1,25 +1,27 @@
 package main
 
 import (
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
 func help() {
 	app := tview.NewApplication()
-	flex := tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(tview.NewBox().SetBorder(true).SetTitle("Help").SetBorderPadding(1, 1, 2, 2), 0, 1, false).
-		AddItem(tview.NewBox().SetBorder(true).SetTitle("Commands").SetBorderPadding(1, 1, 2, 2), 0, 1, false).
-		AddItem(tview.NewBox().SetBorder(true).SetTitle("Options").SetBorderPadding(1, 1, 2, 2), 0, 1, false).
-		AddItem(tview.NewBox().SetBorder(true).SetTitle("Examples").SetBorderPadding(1, 1, 2, 2), 0, 1, false).
-		AddItem(tview.NewBox().SetBorder(true).SetTitle("Exit").SetBorderPadding(1, 1, 2, 2), 0, 1, false)
 
-	if err := app.SetRoot(flex, true).Run(); err != nil {
+	information := tview.NewTextView().
+		SetText(" ### Welcome to qase 4.0(strawberry)! ###").
+		SetTextColor(tcell.ColorWhite).
+		SetTitle(" INFOMATION ").
+		SetTitleAlign(tview.AlignLeft).
+		SetBorder(true).
+		SetBackgroundColor(tcell.ColorDefault)
+
+	app.SetFocus(information)
+
+	// Enable mouse support
+	app.EnableMouse(true)
+
+	if err := app.SetRoot(information, true).Run(); err != nil {
 		panic(err)
 	}
-
-	
-}
-
-func page1() {
-	
 }

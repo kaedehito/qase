@@ -13,6 +13,16 @@ func main() {
 			start_music(args[0])
 		},
 	}
+	var versionCmd = &cobra.Command{
+		Use:   "version",
+		Short: "Print the version number of qase",
+		Run: func(cmd *cobra.Command, args []string) {
+			println("qase 4.0 strawberry")
+			println("Copyright (c) 2024 futo ogasawara <info@pik6c.tech>")
+			println("This software is licensed under the Qase License")
+		},
+	}
+	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(playCmd)
 	rootCmd.Execute()
 

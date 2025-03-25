@@ -17,12 +17,11 @@ import (
 )
 
 var (
-	stop         bool
-	quit         bool
-	musicName    string
-	total_time   time.Duration
-	current_time time.Duration
-	mu           sync.Mutex
+	stop       bool
+	quit       bool
+	musicName  string
+	total_time time.Duration
+	mu         sync.Mutex
 )
 
 func start_music(filePath string) {
@@ -89,8 +88,6 @@ func play_music(streamer beep.StreamSeekCloser, format beep.Format) {
 		} else {
 			beep.Loop(1, streamer)
 		}
-
-		current_time += 1 * time.Millisecond
 
 		if quit {
 			os.Exit(0)

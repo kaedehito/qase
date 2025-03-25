@@ -15,7 +15,6 @@ type model struct {
 	volume   int
 	stop     bool
 	loop     bool
-	help     bool
 }
 
 // Init implements tea.Model.
@@ -54,9 +53,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			quit = true
 			mu.Unlock()
 			return m, tea.Quit
-		case "h":
-			m.help = !m.help
-			return m, nil
 		case "s":
 			if m.stop {
 				m.message2 = "\x1b[31mMusic is already stopped!\x1b[0m"
@@ -100,14 +96,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 	case tickMsg:
-		m.now_time.second += 1
-		if m.now_time.second == 60 {
-			m.now_time.minute += 1
-			m.now_time.second = 0
-		}
-		if m.now_time.minute == 60 {
-			m.now_time.hour += 1
-			m.now_time.minute = 0
+		if !m.stop {
+			m.now_time.second += 1
+			if m.now_time.second == 60 {
+				m.now_time.minute += 1
+				m.now_time.second = 0
+			}
+			if m.now_time.minute == 60 {
+				m.now_time.hour += 1
+				m.now_time.minute = 0
+			}
 		}
 
 		return m, tickCmd()
@@ -118,10 +116,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View implements tea.Model.
 func (m model) View() string {
-
-	if m.help {
-		help()
-	}
 
 	mu.Lock()
 	stop = m.stop
@@ -230,7 +224,6 @@ var _ tea.Model = model{
 	volume:  0,
 	stop:    false,
 	loop:    false,
-	help:    false,
 }
 
 func start_cli() {
@@ -245,7 +238,6 @@ func start_cli() {
 		volume:  50,
 		stop:    false,
 		loop:    false,
-		help:    false,
 	}
 
 	mu.Lock()
