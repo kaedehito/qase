@@ -12,7 +12,7 @@ qase is a music player program written in Go. It was migrated from a C-based imp
 To install qase, use the following command:
 
 ```sh
-go get github.com/kaedehito/qase
+go install github.com/kaedehito/qase@latest
 ```
 
 ## Usage
